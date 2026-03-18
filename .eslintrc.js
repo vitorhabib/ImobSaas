@@ -1,0 +1,19 @@
+module.exports = {
+  root: true,
+  settings: {
+    next: {
+      rootDir: ["apps/*/"],
+    },
+  },
+  parser: "@typescript-eslint/parser",
+  plugins: ["@typescript-eslint"],
+  extends: [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  rules: {
+    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }]
+  },
+  ignorePatterns: ["node_modules/", "dist/", ".next/", "out/"]
+};

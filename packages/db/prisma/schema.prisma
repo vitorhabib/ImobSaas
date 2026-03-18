@@ -1,0 +1,166 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum PersonType {
+  INDIVIDUAL
+  COMPANY
+}
+
+enum OrgStatus {
+  TRIAL
+  ACTIVE
+  SUSPENDED
+  CANCELLED
+}
+
+enum Role {
+  SUPER_ADMIN
+  OWNER
+  ADMIN
+  BROKER
+  VIEWER
+}
+
+enum InvoiceStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CARD
+  PIX
+}
+
+model Organization {
+  id           String     @id @default(cuid())
+  slug         String     @unique
+  name         String
+  personType   PersonType
+
+  // Pessoa Física
+  cpf          String?    @unique
+  ownerName    String?
+
+  // Pessoa Jurídica
+  cnpj         String?    @unique
+  legalName    String?
+  tradeName    String?
+  stateReg     String?
+
+  // Contato
+  email        String
+  phone        String?
+  city         String?
+  state        String?
+  logoUrl      String?
+
+  // Plano e status
+  planId       String
+  status       OrgStatus  @default(TRIAL)
+  trialEndsAt  DateTime?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  plan         Plan       @relation(fields: [planId], references: [id])
+  members      Member[]
+  invoices     Invoice[]
+  features     OrgFeature[]
+  auditLogs    AuditLog[]
+}
+
+model User {
+  id        String   @id @default(cuid())
+  authId    String   @unique
+  email     String   @unique
+  name      String
+  phone     String?
+  cpf       String?  @unique
+  creci     String?
+  avatarUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  member    Member?
+}
+
+model Member {
+  id             String       @id @default(cuid())
+  userId         String       @unique
+  organizationId String
+  role           Role         @default(BROKER)
+  isActive       Boolean      @default(true)
+  joinedAt       DateTime     @default(now())
+  user           User         @relation(fields: [userId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  @@unique([userId, organizationId])
+}
+
+model Plan {
+  id            String         @id @default(cuid())
+  name          String
+  stripePriceId String?
+  maxUsers      Int
+  maxListings   Int
+  features      String[]
+  price         Decimal
+  isActive      Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  organizations Organization[]
+}
+
+model OrgFeature {
+  id             String       @id @default(cuid())
+  organizationId String
+  feature        String
+  enabled        Boolean
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  @@unique([organizationId, feature])
+}
+
+model Invoice {
+  id              String        @id @default(cuid())
+  organizationId  String
+  stripeInvoiceId String?       @unique
+  amount          Decimal
+  status          InvoiceStatus @default(PENDING)
+  method          PaymentMethod
+  dueAt           DateTime
+  paidAt          DateTime?
+  pdfUrl          String?
+  createdAt       DateTime      @default(now())
+  organization    Organization  @relation(fields: [organizationId], references: [id])
+}
+
+model AuditLog {
+  id             String       @id @default(cuid())
+  organizationId String
+  userId         String
+  action         String
+  resource       String
+  resourceId     String?
+  before         Json?
+  after          Json?
+  ip             String?
+  impersonatedBy String?
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id])
+}
+
+model Notification {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String
+  type           String
+  title          String
+  body           String
+  read           Boolean  @default(false)
+  createdAt      DateTime @default(now())
+}
