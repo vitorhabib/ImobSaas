@@ -1,5 +1,4 @@
 version: '3.8'
-
 services:
   api:
     build:
@@ -7,10 +6,20 @@ services:
       dockerfile: apps/api/Dockerfile
     ports:
       - "3001:3001"
-    env_file:
-      - apps/api/.env
     environment:
       - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - DIRECT_URL=${DIRECT_URL}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+      - REDIS_URL=${REDIS_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      - AWS_SES_REGION=${AWS_SES_REGION}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - SES_FROM_EMAIL=${SES_FROM_EMAIL}
     restart: always
 
   web:
@@ -18,14 +27,11 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile
       args:
-        # Pega as variáveis do sistema para o build (ou do seu CI/CD)
-        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:3001}
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
         - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
         - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
     ports:
       - "3000:3000"
-    env_file:
-      - apps/web/.env
     environment:
       - NODE_ENV=production
     restart: always
