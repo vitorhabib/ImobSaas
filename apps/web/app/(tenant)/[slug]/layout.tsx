@@ -116,11 +116,11 @@ export default function TenantLayout({
   };
 
   return (
-    <div className={`flex h-screen transition-colors duration-300 ${isDarkMode ? 'dark bg-slate-950' : 'bg-slate-50'}`}>
+    <div className="flex h-screen overflow-hidden bg-background text-foreground transition-colors duration-300">
       {/* Sidebar */}
-      <aside className="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col transition-colors">
+      <aside className="w-64 bg-card border-r border-border flex flex-col transition-colors">
         <div className="p-6">
-          <Link href="/" className="text-2xl font-bold text-blue-600 tracking-tighter">
+          <Link href="/" className="text-2xl font-bold text-primary tracking-tighter">
             Imob SaaS
           </Link>
         </div>
@@ -134,8 +134,8 @@ export default function TenantLayout({
                 href={item.href}
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
                   isActive 
-                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' 
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
+                    ? 'bg-primary/10 text-primary' 
+                    : 'text-muted-foreground hover:bg-accent hover:text-foreground'
                 }`}
               >
                 <item.icon size={20} />
@@ -150,8 +150,8 @@ export default function TenantLayout({
               onClick={() => setIsSettingsOpen(!isSettingsOpen)}
               className={`flex items-center justify-between w-full px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
                 isSettingsOpen || (pathname?.includes('/settings') ?? false)
-                  ? 'text-blue-600 dark:text-blue-400 bg-slate-50 dark:bg-slate-800/50' 
-                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+                  ? 'text-primary bg-accent/50' 
+                  : 'text-muted-foreground hover:bg-accent hover:text-foreground'
               }`}
             >
               <div className="flex items-center gap-3">
@@ -162,7 +162,7 @@ export default function TenantLayout({
             </button>
 
             {isSettingsOpen && (
-              <div className="mt-1 ml-4 pl-4 border-l border-slate-100 dark:border-slate-800 space-y-1 animate-in fade-in slide-in-from-top-1 duration-200">
+              <div className="mt-1 ml-4 pl-4 border-l border-border space-y-1 animate-in fade-in slide-in-from-top-1 duration-200">
                 {settingsSubItems.map((subItem) => {
                   const isActive = pathname === subItem.href;
                   return (
@@ -171,8 +171,8 @@ export default function TenantLayout({
                       href={subItem.href}
                       className={`flex items-center gap-3 px-4 py-2 rounded-lg text-xs font-medium transition-colors ${
                         isActive
-                          ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/10'
-                          : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400'
+                          ? 'text-primary bg-primary/10'
+                          : 'text-muted-foreground hover:bg-accent hover:text-foreground'
                       }`}
                     >
                       <subItem.icon size={16} />
@@ -185,10 +185,10 @@ export default function TenantLayout({
           </div>
         </nav>
 
-        <div className="p-4 border-t border-slate-200 dark:border-slate-800">
+        <div className="p-4 border-t border-border">
           <button 
             onClick={handleLogout}
-            className="flex items-center gap-3 px-4 py-3 w-full text-left text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors"
+            className="flex items-center gap-3 px-4 py-3 w-full text-left text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground rounded-lg transition-colors"
           >
             <LogOut size={20} />
             Sair
@@ -199,13 +199,13 @@ export default function TenantLayout({
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-8 transition-colors">
+        <header className="h-16 bg-card border-b border-border flex items-center justify-between px-8 transition-colors">
           <div className="relative w-96">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
             <input 
               type="text" 
               placeholder="Buscar por imóveis, clientes..." 
-              className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all dark:text-slate-200 dark:placeholder:text-slate-500"
+              className="w-full pl-10 pr-4 py-2 bg-muted border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary transition-all text-foreground placeholder:text-muted-foreground"
             />
           </div>
 
@@ -213,23 +213,23 @@ export default function TenantLayout({
             {/* Dark Mode Toggle */}
             <button 
               onClick={toggleDarkMode}
-              className="p-2 text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors"
+              className="p-2 text-muted-foreground hover:bg-accent rounded-lg transition-colors"
               title={isDarkMode ? 'Mudar para modo claro' : 'Mudar para modo escuro'}
             >
               {isDarkMode ? <Sun size={20} className="text-yellow-500" /> : <Moon size={20} />}
             </button>
 
-            <button className="p-2 text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors relative">
+            <button className="p-2 text-muted-foreground hover:bg-accent rounded-lg transition-colors relative">
               <Bell size={20} />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-900"></span>
+              <span className="absolute top-2 right-2 w-2 h-2 bg-destructive rounded-full border-2 border-card"></span>
             </button>
-            <div className="h-8 w-px bg-slate-200 dark:bg-slate-800 mx-2"></div>
+            <div className="h-8 w-px bg-border mx-2"></div>
             <div className="flex items-center gap-3">
               <div className="text-right">
-                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 leading-tight">Imobiliária {displayOrgName}</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">{displayOwnerName}</p>
+                <p className="text-sm font-semibold text-foreground leading-tight">Imobiliária {displayOrgName}</p>
+                <p className="text-xs text-muted-foreground">{displayOwnerName}</p>
               </div>
-              <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold shadow-sm">
+              <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-bold shadow-sm">
                 {displayOrgName.charAt(0).toUpperCase()}
               </div>
             </div>
@@ -237,7 +237,7 @@ export default function TenantLayout({
         </header>
 
         {/* Content Wrapper */}
-        <div className={`flex-1 overflow-y-auto p-8 transition-colors ${isDarkMode ? 'bg-slate-950' : 'bg-slate-50'}`}>
+        <div className="flex-1 overflow-y-auto p-8 transition-colors bg-background">
           {children}
         </div>
       </main>

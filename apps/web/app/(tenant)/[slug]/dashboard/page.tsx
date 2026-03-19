@@ -21,10 +21,10 @@ export default function Dashboard({ params }: { params: { slug: string } }) {
     <>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Dashboard</h1>
-          <p className="text-slate-600 dark:text-slate-400 font-medium">Bem-vindo de volta! Aqui está o que está acontecendo hoje.</p>
+          <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-muted-foreground font-medium">Bem-vindo de volta! Aqui está o que está acontecendo hoje.</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-lg transition-all active:scale-95">
+        <button className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-lg shadow-lg transition-all active:scale-95">
           <Plus size={18} />
           Novo Imóvel
         </button>
@@ -33,31 +33,31 @@ export default function Dashboard({ params }: { params: { slug: string } }) {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {stats.map((stat) => (
-          <div key={stat.label} className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
+          <div key={stat.label} className="bg-card p-6 rounded-xl border border-border shadow-sm transition-colors">
             <div className="flex items-center justify-between mb-4">
               <div className={`${stat.bg} ${stat.darkBg} ${stat.color} ${stat.darkColor} p-3 rounded-lg`}>
                 <stat.icon size={24} />
               </div>
-              <span className="text-xs font-bold text-green-500 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-full">
+              <span className="text-xs font-bold text-green-500 bg-green-500/10 px-2 py-1 rounded-full">
                 {stat.change}
               </span>
             </div>
-            <h3 className="text-slate-600 dark:text-slate-400 text-sm font-medium">{stat.label}</h3>
-            <p className="text-2xl font-bold text-slate-900 dark:text-white">{stat.value}</p>
+            <h3 className="text-muted-foreground text-sm font-medium">{stat.label}</h3>
+            <p className="text-2xl font-bold text-foreground">{stat.value}</p>
           </div>
         ))}
       </div>
 
       {/* Charts/Tables Placeholder */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm h-80 flex items-center justify-center text-slate-500 dark:text-slate-400 flex-col gap-2 transition-colors">
+        <div className="lg:col-span-2 bg-card p-6 rounded-xl border border-border shadow-sm h-80 flex items-center justify-center text-muted-foreground flex-col gap-2 transition-colors">
           <TrendingUp size={48} className="opacity-20" />
-          <p className="font-bold text-slate-800 dark:text-slate-200">Gráfico de Vendas e Locações</p>
+          <p className="font-bold text-foreground">Gráfico de Vendas e Locações</p>
           <p className="text-sm">Os dados serão exibidos assim que houver movimentação.</p>
         </div>
-        <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm h-80 flex items-center justify-center text-slate-500 dark:text-slate-400 flex-col gap-2 transition-colors">
+        <div className="bg-card p-6 rounded-xl border border-border shadow-sm h-80 flex items-center justify-center text-muted-foreground flex-col gap-2 transition-colors">
           <Bell size={48} className="opacity-20" />
-          <p className="font-bold text-slate-800 dark:text-slate-200">Atividades Recentes</p>
+          <p className="font-bold text-foreground">Atividades Recentes</p>
           <p className="text-sm text-center">Acompanhe as últimas ações da sua equipe aqui.</p>
         </div>
       </div>

@@ -19,10 +19,10 @@ export default function IntegrationsSettings({ params }: { params: { slug: strin
     <div className="max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Integrações</h1>
-          <p className="text-slate-600 dark:text-slate-400 font-medium">Conecte sua imobiliária com ferramentas externas e automatize seus processos.</p>
+          <h1 className="text-3xl font-bold text-foreground">Integrações</h1>
+          <p className="text-muted-foreground font-medium">Conecte sua imobiliária com ferramentas externas e automatize seus processos.</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-lg transition-all active:scale-95">
+        <button className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-lg shadow-lg transition-all active:scale-95">
           <Plus size={18} />
           Nova Integração
         </button>
@@ -30,30 +30,30 @@ export default function IntegrationsSettings({ params }: { params: { slug: strin
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {integrations.map((integration) => (
-          <div key={integration.id} className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm transition-all hover:shadow-md group">
+          <div key={integration.id} className="bg-card p-6 rounded-xl border border-border shadow-sm transition-all hover:shadow-md group">
             <div className="flex items-center justify-between mb-4">
               <div className={`${integration.color} p-3 rounded-lg`}>
                 <integration.icon size={24} />
               </div>
               <span className={`text-xs font-bold px-2 py-1 rounded-full ${
                 integration.status === 'Ativo' 
-                  ? 'bg-green-50 dark:bg-green-900/20 text-green-600' 
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-400'
+                  ? 'bg-green-500/10 text-green-500' 
+                  : 'bg-muted text-muted-foreground'
               }`}>
                 {integration.status}
               </span>
             </div>
-            <h3 className="text-slate-900 dark:text-white font-bold mb-2 flex items-center gap-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+            <h3 className="text-foreground font-bold mb-2 flex items-center gap-2 group-hover:text-primary transition-colors">
               {integration.name}
               <ExternalLink size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />
             </h3>
-            <p className="text-slate-500 dark:text-slate-400 text-sm mb-6 leading-relaxed">
+            <p className="text-muted-foreground text-sm mb-6 leading-relaxed">
               {integration.description}
             </p>
             <button className={`w-full py-2 rounded-lg text-sm font-bold transition-all ${
               integration.status === 'Ativo'
-                ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700'
-                : 'bg-blue-600 text-white hover:bg-blue-700'
+                ? 'bg-muted text-foreground hover:bg-accent'
+                : 'bg-primary text-primary-foreground hover:bg-primary/90'
             }`}>
               {integration.status === 'Ativo' ? 'Configurar' : 'Ativar Agora'}
             </button>
