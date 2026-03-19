@@ -41,8 +41,8 @@ export default function Cadastro() {
     ownerPasswordConfirm: '',
   });
 
-  const set = (field: keyof FormData, value: string) =>
-    setForm((prev: FormData) => ({ ...prev, [field]: value }));
+  const set = <K extends keyof FormData>(field: K, value: FormData[K]) =>
+    setForm((prev) => ({ ...prev, [field]: value }));
 
   const slugify = (value: string) =>
     value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -71,6 +71,7 @@ export default function Cadastro() {
     if (err) { setError(err); return; }
     setError('');
     setStep((s: number) => s + 1);
+    window.scrollTo(0, 0);
   };
 
   const submit = async () => {
@@ -98,6 +99,13 @@ export default function Cadastro() {
       if (!res.ok) throw new Error(data.error || 'Erro ao criar conta');
 
       document.cookie = `token=${data.token}; path=/; max-age=86400`;
+      
+      // Salva os dados para o dashboard exibir corretamente
+      localStorage.setItem(`org_${data.slug}`, JSON.stringify({
+        name: form.name,
+        ownerName: form.ownerName
+      }));
+
       window.location.href = `/${data.slug}/dashboard`;
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Erro inesperado');

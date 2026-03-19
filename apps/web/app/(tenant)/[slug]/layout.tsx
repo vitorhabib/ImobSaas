@@ -67,10 +67,14 @@ export default function TenantLayout({
   }, [isDarkMode]);
 
   useEffect(() => {
-    // Carrega os dados persistidos no cadastro
+    // Carrega os dados persistidos no cadastro/login
     const savedData = localStorage.getItem(`org_${params.slug}`);
     if (savedData) {
-      setOrgData(JSON.parse(savedData));
+      try {
+        setOrgData(JSON.parse(savedData));
+      } catch (e) {
+        console.error("Erro ao carregar dados da organização", e);
+      }
     }
   }, [params.slug]);
 

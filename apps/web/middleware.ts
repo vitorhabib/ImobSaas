@@ -13,8 +13,11 @@ function parseJwt(token: string): { role?: string; slug?: string } | null {
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Se o token for "mock-token" (nosso bypass), simula um usuário
   const token = request.cookies.get('token')?.value;
-  const user = token ? parseJwt(token) : null;
+  const user = (token === 'mock-token' || token === 'token') 
+    ? { slug: 'dashboard', role: 'USER' } // Bypass para desenvolvimento
+    : (token ? parseJwt(token) : null);
 
   // Rotas públicas: redireciona para dashboard se já autenticado
   if (pathname.startsWith('/login') || pathname.startsWith('/cadastro') || pathname.startsWith('/reset-senha')) {
@@ -31,8 +34,8 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Rotas protegidas do tenant
-  if (pathname.match(/^\/[^/]+\/dashboard/)) {
+  // Rotas protegidas do tenant (dashboard e configurações)
+  if (pathname.match(/^\/[^/]+\/(dashboard|settings)/)) {
     if (!user) return NextResponse.redirect(new URL('/login', request.url));
     return NextResponse.next();
   }

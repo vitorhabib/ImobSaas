@@ -28,6 +28,13 @@ export default function Login() {
       if (!res.ok) throw new Error(data.error || 'Credenciais inválidas');
 
       document.cookie = `token=${data.token}; path=/; max-age=86400`;
+      
+      // Salva os dados para o dashboard exibir corretamente
+      localStorage.setItem(`org_${data.slug}`, JSON.stringify({
+        name: data.name || data.slug,
+        ownerName: data.ownerName || data.email
+      }));
+
       window.location.href = `/${data.slug}/dashboard`;
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Erro inesperado');
