@@ -42,7 +42,7 @@ export default function Cadastro() {
   });
 
   const set = (field: keyof FormData, value: string) =>
-    setForm((prev) => ({ ...prev, [field]: value }));
+    setForm((prev: FormData) => ({ ...prev, [field]: value }));
 
   const slugify = (value: string) =>
     value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -70,7 +70,7 @@ export default function Cadastro() {
     const err = validateStep();
     if (err) { setError(err); return; }
     setError('');
-    setStep((s) => s + 1);
+    setStep((s: number) => s + 1);
   };
 
   const submit = async () => {
