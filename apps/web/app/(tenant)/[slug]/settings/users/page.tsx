@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { 
   Users, 
   UserPlus, 
@@ -10,10 +11,19 @@ import {
 } from 'lucide-react';
 
 export default function UsersSettings({ params }: { params: { slug: string } }) {
+  const [isInviteOpen, setIsInviteOpen] = useState(false);
+  const [inviteData, setInviteData] = useState({ name: '', email: '', role: 'Corretor' });
+
   const users = [
     { id: 1, name: 'Administrador', email: 'admin@imobsaas.com', role: 'Dono', status: 'Ativo' },
     { id: 2, name: 'Corretor João', email: 'joao@imobsaas.com', role: 'Corretor', status: 'Ativo' },
   ];
+
+  const handleInvite = (e: React.FormEvent) => {
+    e.preventDefault();
+    alert(`Convite enviado para ${inviteData.email}`);
+    setIsInviteOpen(false);
+  };
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -22,11 +32,73 @@ export default function UsersSettings({ params }: { params: { slug: string } }) 
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Usuários</h1>
           <p className="text-slate-600 dark:text-slate-400 font-medium">Gerencie quem tem acesso à sua plataforma e suas permissões.</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-lg transition-all active:scale-95">
+        <button 
+          onClick={() => setIsInviteOpen(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-lg transition-all active:scale-95"
+        >
           <UserPlus size={18} />
           Convidar Usuário
         </button>
       </div>
+
+      {/* Modal de Convite (Simplificado) */}
+      {isInviteOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl w-full max-w-md border border-slate-200 dark:border-slate-800 shadow-2xl">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Convidar Novo Usuário</h2>
+            <form onSubmit={handleInvite} className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Nome Completo</label>
+                <input 
+                  type="text" 
+                  required
+                  value={inviteData.name}
+                  onChange={(e) => setInviteData({...inviteData, name: e.target.value})}
+                  className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">E-mail</label>
+                <input 
+                  type="email" 
+                  required
+                  value={inviteData.email}
+                  onChange={(e) => setInviteData({...inviteData, email: e.target.value})}
+                  className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Cargo</label>
+                <select 
+                  value={inviteData.role}
+                  onChange={(e) => setInviteData({...inviteData, role: e.target.value})}
+                  className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option>Dono</option>
+                  <option>Administrador</option>
+                  <option>Corretor</option>
+                  <option>Financeiro</option>
+                </select>
+              </div>
+              <div className="flex gap-3 pt-4">
+                <button 
+                  type="button" 
+                  onClick={() => setIsInviteOpen(false)}
+                  className="flex-1 py-2 text-slate-600 dark:text-slate-400 font-bold hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="submit"
+                  className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors"
+                >
+                  Enviar Convite
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
         <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4">
