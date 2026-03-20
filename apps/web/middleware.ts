@@ -15,12 +15,19 @@ export function middleware(request: NextRequest) {
 
   // Se o token for "mock-token" (nosso bypass), simula um usuário
   const token = request.cookies.get('token')?.value;
-  const user = (token === 'mock-token' || token === 'token') 
-    ? { slug: 'dashboard', role: 'USER' } // Bypass para desenvolvimento
-    : (token ? parseJwt(token) : null);
+  const user =
+    token === 'mock-token' || token === 'token'
+      ? { slug: 'dashboard', role: 'USER' } // Bypass para desenvolvimento
+      : token
+        ? parseJwt(token)
+        : null;
 
   // Rotas públicas: redireciona para dashboard se já autenticado
-  if (pathname.startsWith('/login') || pathname.startsWith('/cadastro') || pathname.startsWith('/reset-senha')) {
+  if (
+    pathname.startsWith('/login') ||
+    pathname.startsWith('/cadastro') ||
+    pathname.startsWith('/reset-senha')
+  ) {
     if (user?.slug) {
       return NextResponse.redirect(new URL(`/${user.slug}/dashboard`, request.url));
     }
@@ -30,7 +37,8 @@ export function middleware(request: NextRequest) {
   // Rotas admin: exige SUPER_ADMIN
   if (pathname.startsWith('/admin')) {
     if (!user) return NextResponse.redirect(new URL('/login', request.url));
-    if (user.role !== 'SUPER_ADMIN') return NextResponse.redirect(new URL(`/${user.slug}/dashboard`, request.url));
+    if (user.role !== 'SUPER_ADMIN')
+      return NextResponse.redirect(new URL(`/${user.slug}/dashboard`, request.url));
     return NextResponse.next();
   }
 

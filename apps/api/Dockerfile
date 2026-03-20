@@ -7,7 +7,6 @@ WORKDIR /app
 
 # Copia arquivos de lock e config do workspace
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json turbo.json ./
-COPY packages/db/package.json ./packages/db/
 COPY packages/types/package.json ./packages/types/
 COPY apps/api/package.json ./apps/api/
 
@@ -15,12 +14,8 @@ COPY apps/api/package.json ./apps/api/
 RUN pnpm install
 
 # Copia o código fonte
-COPY packages/db ./packages/db
 COPY packages/types ./packages/types
 COPY apps/api ./apps/api
-
-# Gera o client do Prisma (necessário DATABASE_URL fake para build se não houver skip)
-RUN pnpm --filter @imob-saas/db generate
 
 # Build do TypeScript
 RUN pnpm --filter api build

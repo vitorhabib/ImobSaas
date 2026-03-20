@@ -3,11 +3,14 @@ import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import jwt from '@fastify/jwt';
 import { createClient } from '@supabase/supabase-js';
-import { prisma } from '@imob-saas/db';
+import * as dotenv from 'dotenv';
+import { resolve } from 'path';
 
 import authPlugin from './plugins/auth.plugin';
 import guardPlugin from './plugins/guard.plugin';
 import auditPlugin from './plugins/audit.plugin';
+
+dotenv.config({ path: resolve(__dirname, '../.env') });
 
 const fastify = Fastify({ logger: true });
 
@@ -22,11 +25,12 @@ fastify.register(guardPlugin);
 fastify.register(auditPlugin);
 
 function getSupabaseAdmin() {
-  return createClient(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } }
-  );
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
+    throw new Error('As variáveis SUPABASE_URL e SUPABASE_SERVICE_KEY são obrigatórias');
+  }
+  return createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
 }
 
 // Auth Routes
@@ -40,31 +44,54 @@ fastify.post('/auth/login', async (request, reply) => {
     return reply.status(401).send({ error: 'Email ou senha inválidos' });
   }
 
-  const user = await prisma.user.findUnique({
-    where: { authId: data.user.id },
-    include: {
-      member: { include: { organization: true } },
-    },
-  });
+  // Busca o usuário no Supabase
+  const { data: user, error: userError } = await supabase
+    .from('users')
+    .select(
+      `
+      id,
+      auth_id,
+      members!inner(
+        role,
+        organization_id,
+        organizations!inner(
+          slug
+        )
+      )
+    `,
+    )
+    .eq('auth_id', data.user.id)
+    .single();
 
-  if (!user?.member) {
-    return reply.status(401).send({ error: 'Usuário não encontrado' });
+  if (userError || !user || !user.members || user.members.length === 0) {
+    return reply.status(401).send({ error: 'Usuário não encontrado ou sem organização' });
   }
+
+  const member = user.members[0] as any;
+  const org = member.organizations as any;
 
   const token = fastify.jwt.sign({
     userId: user.id,
-    orgId: user.member.organizationId,
-    slug: user.member.organization.slug,
-    role: user.member.role,
+    orgId: member.organization_id,
+    slug: org.slug,
+    role: member.role,
   });
 
-  return reply.send({ token, slug: user.member.organization.slug });
+  return reply.send({ token, slug: org.slug });
 });
 
-fastify.post('/auth/magic-link', async (_request, _reply) => { return { message: 'magic-link' }; });
-fastify.post('/auth/refresh', async (_request, _reply) => { return { message: 'refresh' }; });
-fastify.post('/auth/logout', async (_request, _reply) => { return { message: 'logout' }; });
-fastify.post('/auth/reset-password', async (_request, _reply) => { return { message: 'reset-password' }; });
+fastify.post('/auth/magic-link', async (_request, _reply) => {
+  return { message: 'magic-link' };
+});
+fastify.post('/auth/refresh', async (_request, _reply) => {
+  return { message: 'refresh' };
+});
+fastify.post('/auth/logout', async (_request, _reply) => {
+  return { message: 'logout' };
+});
+fastify.post('/auth/reset-password', async (_request, _reply) => {
+  return { message: 'reset-password' };
+});
 
 // Organization Routes
 fastify.post('/organizations', async (request, reply) => {
@@ -81,13 +108,18 @@ fastify.post('/organizations', async (request, reply) => {
     ownerPassword: string;
   };
 
+  const supabase = getSupabaseAdmin();
+
   // Check slug availability
-  const existingOrg = await prisma.organization.findUnique({ where: { slug: body.slug } });
+  const { data: existingOrg } = await supabase
+    .from('organizations')
+    .select('id')
+    .eq('slug', body.slug)
+    .single();
+
   if (existingOrg) {
     return reply.status(400).send({ error: 'Esse slug já está em uso' });
   }
-
-  const supabase = getSupabaseAdmin();
 
   // Create Supabase auth user
   const { data: authData, error: authError } = await supabase.auth.admin.createUser({
@@ -101,101 +133,172 @@ fastify.post('/organizations', async (request, reply) => {
   }
 
   // Find or create default trial plan
-  let plan = await prisma.plan.findFirst({ where: { name: 'Trial', isActive: true } });
+  let { data: plan } = await supabase
+    .from('plans')
+    .select('id')
+    .eq('name', 'Trial')
+    .eq('is_active', true)
+    .single();
+
   if (!plan) {
-    plan = await prisma.plan.create({
-      data: {
+    const { data: newPlan, error: planError } = await supabase
+      .from('plans')
+      .insert({
         name: 'Trial',
-        maxUsers: 3,
-        maxListings: 10,
+        max_users: 3,
+        max_listings: 10,
         features: ['basic'],
         price: 0,
-        isActive: true,
-      },
-    });
+        is_active: true,
+      })
+      .select('id')
+      .single();
+
+    if (planError || !newPlan) {
+      return reply.status(500).send({ error: 'Erro ao criar plano Trial' });
+    }
+    plan = newPlan;
   }
 
-  // Create org, user and member in a transaction
-  const result = await prisma.$transaction(async (tx) => {
-    const org = await tx.organization.create({
-      data: {
-        slug: body.slug,
-        name: body.name,
-        personType: body.personType,
-        email: body.email,
-        phone: body.phone ?? null,
-        cpf: body.cpf ?? null,
-        cnpj: body.cnpj ?? null,
-        planId: plan!.id,
-      },
-    });
+  // Create org, user and member
+  const { data: org, error: orgError } = await supabase
+    .from('organizations')
+    .insert({
+      slug: body.slug,
+      name: body.name,
+      person_type: body.personType,
+      email: body.email,
+      phone: body.phone ?? null,
+      cpf: body.cpf ?? null,
+      cnpj: body.cnpj ?? null,
+      plan_id: plan.id,
+    })
+    .select('id, slug')
+    .single();
 
-    const user = await tx.user.create({
-      data: {
-        authId: authData.user.id,
-        email: body.ownerEmail,
-        name: body.ownerName,
-      },
-    });
+  if (orgError || !org) {
+    return reply.status(500).send({ error: 'Erro ao criar organização' });
+  }
 
-    const member = await tx.member.create({
-      data: {
-        userId: user.id,
-        organizationId: org.id,
-        role: 'OWNER',
-      },
-    });
+  const { data: user, error: userCreateError } = await supabase
+    .from('users')
+    .insert({
+      auth_id: authData.user.id,
+      email: body.ownerEmail,
+      name: body.ownerName,
+    })
+    .select('id')
+    .single();
 
-    return { org, user, member };
-  });
+  if (userCreateError || !user) {
+    return reply.status(500).send({ error: 'Erro ao criar perfil de usuário' });
+  }
+
+  const { data: member, error: memberError } = await supabase
+    .from('members')
+    .insert({
+      user_id: user.id,
+      organization_id: org.id,
+      role: 'OWNER',
+    })
+    .select('id')
+    .single();
+
+  if (memberError || !member) {
+    return reply.status(500).send({ error: 'Erro ao associar usuário à organização' });
+  }
 
   const token = fastify.jwt.sign({
-    userId: result.user.id,
-    orgId: result.org.id,
-    slug: result.org.slug,
+    userId: user.id,
+    orgId: org.id,
+    slug: org.slug,
     role: 'OWNER',
   });
 
-  return reply.status(201).send({ token, slug: result.org.slug });
+  return reply.status(201).send({ token, slug: org.slug });
 });
 
-fastify.get('/organizations/:slug', async (_request, _reply) => { return { message: 'get org' }; });
-fastify.put('/organizations/:slug', async (_request, _reply) => { return { message: 'update org' }; });
-fastify.get('/organizations/:slug/usage', async (_request, _reply) => { return { message: 'org usage' }; });
+fastify.get('/organizations/:slug', async (_request, _reply) => {
+  return { message: 'get org' };
+});
+fastify.put('/organizations/:slug', async (_request, _reply) => {
+  return { message: 'update org' };
+});
+fastify.get('/organizations/:slug/usage', async (_request, _reply) => {
+  return { message: 'org usage' };
+});
 fastify.get('/organizations/slug/check/:slug', async (request, _reply) => {
   const { slug } = request.params as { slug: string };
-  const org = await prisma.organization.findUnique({ where: { slug } });
+  const supabase = getSupabaseAdmin();
+  const { data: org } = await supabase.from('organizations').select('id').eq('slug', slug).single();
   return { available: !org };
 });
 
-fastify.get('/organizations/:slug/members', async (_request, _reply) => { return { message: 'list members' }; });
-fastify.post('/organizations/:slug/members/invite', async (_request, _reply) => { return { message: 'invite member' }; });
-fastify.patch('/organizations/:slug/members/:id', async (_request, _reply) => { return { message: 'edit member' }; });
-fastify.delete('/organizations/:slug/members/:id', async (_request, _reply) => { return { message: 'remove member' }; });
+fastify.get('/organizations/:slug/members', async (_request, _reply) => {
+  return { message: 'list members' };
+});
+fastify.post('/organizations/:slug/members/invite', async (_request, _reply) => {
+  return { message: 'invite member' };
+});
+fastify.patch('/organizations/:slug/members/:id', async (_request, _reply) => {
+  return { message: 'edit member' };
+});
+fastify.delete('/organizations/:slug/members/:id', async (_request, _reply) => {
+  return { message: 'remove member' };
+});
 
 fastify.get('/plans', async (_request, _reply) => {
-  const plans = await prisma.plan.findMany({ where: { isActive: true } });
+  const supabase = getSupabaseAdmin();
+  const { data: plans } = await supabase.from('plans').select('*').eq('is_active', true);
   return plans;
 });
 
-fastify.post('/billing/subscribe', async (_request, _reply) => { return { message: 'subscribe' }; });
-fastify.post('/billing/cancel', async (_request, _reply) => { return { message: 'cancel' }; });
-fastify.get('/billing/invoices', async (_request, _reply) => { return { message: 'invoices' }; });
+fastify.post('/billing/subscribe', async (_request, _reply) => {
+  return { message: 'subscribe' };
+});
+fastify.post('/billing/cancel', async (_request, _reply) => {
+  return { message: 'cancel' };
+});
+fastify.get('/billing/invoices', async (_request, _reply) => {
+  return { message: 'invoices' };
+});
 
-fastify.post('/webhooks/stripe', async (_request, _reply) => { return { message: 'stripe webhook' }; });
-fastify.post('/webhooks/abacatepay', async (_request, _reply) => { return { message: 'abacatepay webhook' }; });
+fastify.post('/webhooks/stripe', async (_request, _reply) => {
+  return { message: 'stripe webhook' };
+});
+fastify.post('/webhooks/abacatepay', async (_request, _reply) => {
+  return { message: 'abacatepay webhook' };
+});
 
-fastify.get('/notifications', async (_request, _reply) => { return { message: 'list notifications' }; });
-fastify.patch('/notifications/:id/read', async (_request, _reply) => { return { message: 'read notification' }; });
-fastify.patch('/notifications/read-all', async (_request, _reply) => { return { message: 'read all' }; });
+fastify.get('/notifications', async (_request, _reply) => {
+  return { message: 'list notifications' };
+});
+fastify.patch('/notifications/:id/read', async (_request, _reply) => {
+  return { message: 'read notification' };
+});
+fastify.patch('/notifications/read-all', async (_request, _reply) => {
+  return { message: 'read all' };
+});
 
 // Admin Routes
-fastify.get('/admin/organizations', async (_request, _reply) => { return { message: 'admin get orgs' }; });
-fastify.patch('/admin/organizations/:id/status', async (_request, _reply) => { return { message: 'admin edit org status' }; });
-fastify.post('/admin/organizations/:id/impersonate', async (_request, _reply) => { return { message: 'admin impersonate' }; });
-fastify.get('/admin/metrics', async (_request, _reply) => { return { message: 'admin metrics' }; });
-fastify.get('/admin/audit', async (_request, _reply) => { return { message: 'admin audit' }; });
-fastify.get('/admin/tickets', async (_request, _reply) => { return { message: 'admin tickets' }; });
+fastify.get('/admin/organizations', async (_request, _reply) => {
+  return { message: 'admin get orgs' };
+});
+fastify.patch('/admin/organizations/:id/status', async (_request, _reply) => {
+  return { message: 'admin edit org status' };
+});
+fastify.post('/admin/organizations/:id/impersonate', async (_request, _reply) => {
+  return { message: 'admin impersonate' };
+});
+fastify.get('/admin/metrics', async (_request, _reply) => {
+  return { message: 'admin metrics' };
+});
+fastify.get('/admin/audit', async (_request, _reply) => {
+  return { message: 'admin audit' };
+});
+fastify.get('/admin/tickets', async (_request, _reply) => {
+  return { message: 'admin tickets' };
+});
 
 const start = async () => {
   try {

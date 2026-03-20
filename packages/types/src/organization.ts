@@ -2,7 +2,11 @@ import { z } from 'zod';
 
 export const organizationSchema = z.object({
   id: z.string().cuid(),
-  slug: z.string().min(3).max(30).regex(/^[a-z0-9-]+$/),
+  slug: z
+    .string()
+    .min(3)
+    .max(30)
+    .regex(/^[a-z0-9-]+$/),
   name: z.string().min(2),
   personType: z.enum(['INDIVIDUAL', 'COMPANY']),
   cpf: z.string().nullable().optional(),

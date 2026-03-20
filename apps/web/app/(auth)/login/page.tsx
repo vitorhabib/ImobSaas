@@ -13,7 +13,10 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) { setError('Preencha e-mail e senha'); return; }
+    if (!email || !password) {
+      setError('Preencha e-mail e senha');
+      return;
+    }
 
     setLoading(true);
     setError('');
@@ -28,12 +31,15 @@ export default function Login() {
       if (!res.ok) throw new Error(data.error || 'Credenciais inválidas');
 
       document.cookie = `token=${data.token}; path=/; max-age=86400`;
-      
+
       // Salva os dados para o dashboard exibir corretamente
-      localStorage.setItem(`org_${data.slug}`, JSON.stringify({
-        name: data.name || data.slug,
-        ownerName: data.ownerName || data.email
-      }));
+      localStorage.setItem(
+        `org_${data.slug}`,
+        JSON.stringify({
+          name: data.name || data.slug,
+          ownerName: data.ownerName || data.email,
+        }),
+      );
 
       window.location.href = `/${data.slug}/dashboard`;
     } catch (e: unknown) {
@@ -47,7 +53,10 @@ export default function Login() {
     <div className="flex min-h-screen bg-slate-50 items-center justify-center p-4">
       <div className="w-full max-w-md p-8 bg-white rounded-2xl shadow-xl border border-slate-100">
         <div className="text-center mb-8">
-          <Link href="/" className="text-3xl font-bold text-blue-600 tracking-tighter inline-block mb-2">
+          <Link
+            href="/"
+            className="text-3xl font-bold text-blue-600 tracking-tighter inline-block mb-2"
+          >
             Imob SaaS
           </Link>
           <h1 className="text-2xl font-bold text-slate-900 mt-4">Bem-vindo de volta</h1>
@@ -55,7 +64,9 @@ export default function Login() {
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">{error}</div>
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+            {error}
+          </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -72,7 +83,10 @@ export default function Login() {
           <div>
             <div className="flex justify-between items-center mb-2">
               <label className="block text-sm font-semibold text-slate-700">Senha</label>
-              <Link href="/reset-senha" className="text-sm text-blue-600 hover:text-blue-800 font-medium">
+              <Link
+                href="/reset-senha"
+                className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+              >
                 Esqueceu a senha?
               </Link>
             </div>
@@ -96,7 +110,9 @@ export default function Login() {
         <div className="mt-8 pt-6 border-t border-slate-100 text-center">
           <p className="text-slate-600">
             Ainda não tem uma conta?{' '}
-            <Link href="/cadastro" className="text-blue-600 font-semibold hover:underline">Crie agora</Link>
+            <Link href="/cadastro" className="text-blue-600 font-semibold hover:underline">
+              Crie agora
+            </Link>
           </p>
         </div>
       </div>

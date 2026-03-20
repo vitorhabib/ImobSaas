@@ -28,8 +28,11 @@ apps/mobile/web-build/
 .env
 .env*.local
 
-# prisma
-packages/db/.env
+# editor
+.vscode/
+
+# trae
+.trae/
 
 # mac
 .DS_Store

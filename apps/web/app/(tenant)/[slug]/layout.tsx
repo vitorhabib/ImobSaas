@@ -1,13 +1,12 @@
 'use client';
 
-import { 
-  LayoutDashboard, 
-  Users, 
-  Home, 
-  FileText, 
-  Settings, 
-  LogOut, 
-  Bell, 
+import {
+  LayoutDashboard,
+  Users,
+  FileText,
+  Settings,
+  LogOut,
+  Bell,
   Search,
   Moon,
   Sun,
@@ -17,16 +16,16 @@ import {
   Link as LinkIcon,
   CreditCard,
   Briefcase,
-  DollarSign
+  DollarSign,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 
-export default function TenantLayout({ 
-  children, 
-  params 
-}: { 
+export default function TenantLayout({
+  children,
+  params,
+}: {
   children: React.ReactNode;
   params: { slug: string };
 }) {
@@ -73,16 +72,18 @@ export default function TenantLayout({
       try {
         setOrgData(JSON.parse(savedData));
       } catch (e) {
-        console.error("Erro ao carregar dados da organização", e);
+        console.error('Erro ao carregar dados da organização', e);
       }
     }
   }, [params.slug]);
 
   // Nome formatado (usa o nome real se existir, senão usa o slug)
-  const displayOrgName = orgData.name || params.slug
-    .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
+  const displayOrgName =
+    orgData.name ||
+    params.slug
+      .split('-')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
 
   const displayOwnerName = orgData.ownerName || displayOrgName;
 
@@ -107,10 +108,10 @@ export default function TenantLayout({
   const handleLogout = () => {
     // Remove o cookie de token para deslogar no Middleware
     document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-    
+
     // Remove o tema salvo (opcional, mas bom para resetar)
     localStorage.removeItem('theme');
-    
+
     // Redireciona para a página de login
     window.location.href = '/login';
   };
@@ -124,7 +125,7 @@ export default function TenantLayout({
             Imob SaaS
           </Link>
         </div>
-        
+
         <nav className="flex-1 px-4 space-y-1">
           {sidebarItems.map((item) => {
             const isActive = pathname === item.href;
@@ -133,8 +134,8 @@ export default function TenantLayout({
                 key={item.label}
                 href={item.href}
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                  isActive 
-                    ? 'bg-primary/10 text-primary' 
+                  isActive
+                    ? 'bg-primary/10 text-primary'
                     : 'text-muted-foreground hover:bg-accent hover:text-foreground'
                 }`}
               >
@@ -150,7 +151,7 @@ export default function TenantLayout({
               onClick={() => setIsSettingsOpen(!isSettingsOpen)}
               className={`flex items-center justify-between w-full px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
                 isSettingsOpen || (pathname?.includes('/settings') ?? false)
-                  ? 'text-primary bg-accent/50' 
+                  ? 'text-primary bg-accent/50'
                   : 'text-muted-foreground hover:bg-accent hover:text-foreground'
               }`}
             >
@@ -186,7 +187,7 @@ export default function TenantLayout({
         </nav>
 
         <div className="p-4 border-t border-border">
-          <button 
+          <button
             onClick={handleLogout}
             className="flex items-center gap-3 px-4 py-3 w-full text-left text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground rounded-lg transition-colors"
           >
@@ -201,17 +202,20 @@ export default function TenantLayout({
         {/* Header */}
         <header className="h-16 bg-card border-b border-border flex items-center justify-between px-8 transition-colors">
           <div className="relative w-96">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-            <input 
-              type="text" 
-              placeholder="Buscar por imóveis, clientes..." 
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+              size={18}
+            />
+            <input
+              type="text"
+              placeholder="Buscar por imóveis, clientes..."
               className="w-full pl-10 pr-4 py-2 bg-muted border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary transition-all text-foreground placeholder:text-muted-foreground"
             />
           </div>
 
           <div className="flex items-center gap-4">
             {/* Dark Mode Toggle */}
-            <button 
+            <button
               onClick={toggleDarkMode}
               className="p-2 text-muted-foreground hover:bg-accent rounded-lg transition-colors"
               title={isDarkMode ? 'Mudar para modo claro' : 'Mudar para modo escuro'}
@@ -226,7 +230,9 @@ export default function TenantLayout({
             <div className="h-8 w-px bg-border mx-2"></div>
             <div className="flex items-center gap-3">
               <div className="text-right">
-                <p className="text-sm font-semibold text-foreground leading-tight">Imobiliária {displayOrgName}</p>
+                <p className="text-sm font-semibold text-foreground leading-tight">
+                  Imobiliária {displayOrgName}
+                </p>
                 <p className="text-xs text-muted-foreground">{displayOwnerName}</p>
               </div>
               <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-bold shadow-sm">
@@ -237,9 +243,7 @@ export default function TenantLayout({
         </header>
 
         {/* Content Wrapper */}
-        <div className="flex-1 overflow-y-auto p-8 transition-colors bg-background">
-          {children}
-        </div>
+        <div className="flex-1 overflow-y-auto p-8 transition-colors bg-background">{children}</div>
       </main>
     </div>
   );

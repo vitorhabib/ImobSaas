@@ -1,12 +1,12 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import './globals.css';
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: "Imob SaaS",
-  description: "Plataforma para gestão imobiliária",
+  title: 'Imob SaaS',
+  description: 'Plataforma para gestão imobiliária',
 };
 
 export default function RootLayout({
